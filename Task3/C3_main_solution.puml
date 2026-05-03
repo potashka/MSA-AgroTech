@@ -1,0 +1,45 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title C3 - Video Analytics Service в Edge-first решении
+
+Container_Ext(video_stream_adapter, "Video Stream Adapter", "RTSP/ONVIF", "Прием видеопотоков")
+Container_Ext(local_broker, "Local Message Broker", "RabbitMQ/MQTT", "Локальная шина событий")
+ContainerDb_Ext(local_db, "Local Operational DB", "PostgreSQL/TimescaleDB", "Локальное хранилище")
+Container_Ext(local_notification, "Local Notification Service", "Service", "Локальные уведомления")
+
+Container_Boundary(video_analytics_service, "Video Analytics Service") {
+  Component(stream_receiver, "Stream Receiver", "Component", "Получает поток кадров")
+  Component(frame_buffer, "Frame Buffer", "Component", "Буферизует кадры для обработки")
+  Component(frame_preprocessor, "Frame Preprocessor", "Component", "Нормализует кадры")
+  Component(ml_inference_adapter, "ML Inference Adapter", "Component", "Вызывает ML-модель")
+  Component(animal_tracker, "Animal Tracker", "Component", "Отслеживает животных между кадрами")
+  Component(behavior_analyzer, "Behavior Analyzer", "Component", "Ищет драки и беспокойство")
+  Component(health_state_analyzer, "Health State Analyzer", "Component", "Оценивает болезнь и гибель")
+  Component(animal_counting, "Animal Counting Component", "Component", "Пересчитывает поголовье")
+  Component(incident_classifier, "Incident Classifier", "Component", "Классифицирует инциденты")
+  Component(event_publisher, "Event Publisher", "Component", "Публикует события")
+  Component(metrics_collector, "Metrics Collector", "Component", "Собирает метрики обработки")
+  Component(model_version_manager, "Model Version Manager", "Component", "Управляет версиями ML-моделей")
+}
+
+Rel(video_stream_adapter, stream_receiver, "Передает кадры")
+Rel(stream_receiver, frame_buffer, "Кладет кадры")
+Rel(frame_buffer, frame_preprocessor, "Отдает кадры")
+Rel(frame_preprocessor, ml_inference_adapter, "Передает подготовленные кадры")
+Rel(model_version_manager, ml_inference_adapter, "Выбирает версию модели")
+Rel(ml_inference_adapter, animal_tracker, "Передает detections")
+Rel(animal_tracker, behavior_analyzer, "Передает треки")
+Rel(animal_tracker, animal_counting, "Передает треки")
+Rel(animal_tracker, health_state_analyzer, "Передает признаки")
+Rel(behavior_analyzer, incident_classifier, "Передает признаки поведения")
+Rel(health_state_analyzer, incident_classifier, "Передает признаки здоровья")
+Rel(incident_classifier, event_publisher, "Создает incident events")
+Rel(animal_counting, event_publisher, "Публикует count events")
+Rel(metrics_collector, event_publisher, "Публикует processing metrics")
+Rel(event_publisher, local_broker, "Публикует события")
+Rel(local_broker, local_db, "Сохраняет события")
+Rel(local_broker, local_notification, "Передает тревоги")
+
+LAYOUT_WITH_LEGEND()
+@enduml

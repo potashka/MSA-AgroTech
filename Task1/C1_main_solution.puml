@@ -1,0 +1,45 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title C1 - Edge-first платформа мониторинга свиноводческих ферм
+
+Person(farm_operator, "Оператор фермы", "Получает тревоги и контролирует локальные процессы")
+Person(veterinarian, "Ветеринар", "Анализирует признаки болезни, гибели и травм")
+Person(zootechnician, "Зоотехник", "Контролирует поведение, кормление и поголовье")
+Person(director, "Директор хозяйства", "Смотрит отчеты и KPI")
+Person(engineer, "Инженер/техник", "Обслуживает оборудование и камеры")
+Person(analyst, "Аналитик", "Использует метрики и выгрузки")
+
+System_Ext(ip_cameras, "IP-камеры", "RTSP/ONVIF, дневная и ночная съемка")
+System_Ext(feeders, "Кормушки и поилки", "Устройства разных производителей")
+System_Ext(water_filters, "Системы фильтрации воды", "Фильтры, датчики качества и давления")
+System_Ext(feed_stock_sensors, "Датчики запасов корма", "Силосы, весы, уровнемеры")
+System_Ext(erp, "ERP / 1С:Агро", "Учет и производственные данные")
+System_Ext(bi, "BI-система", "Отчеты и дашборды")
+System_Ext(notification_channels, "Каналы уведомлений", "SMS, мессенджеры, сирены, локальные панели")
+System_Ext(current_landscape, "Текущий IT-ландшафт АгроТех Х", "SCADA, Data Lake, DWH, брокеры, IoT")
+
+System(farm_agents, "Farm Agents на фермах", "Локальная обработка видео, устройств, инцидентов и offline-режим")
+System(central_platform, "Центральная платформа", "API, роли, агрегированные данные, отчеты, интеграции")
+
+Rel(farm_operator, farm_agents, "Получает локальные тревоги и смотрит состояние фермы")
+Rel(farm_operator, central_platform, "Работает через портал/API")
+Rel(veterinarian, central_platform, "Анализирует инциденты и здоровье животных")
+Rel(zootechnician, central_platform, "Контролирует поголовье, кормление и поведение")
+Rel(director, central_platform, "Получает сводные отчеты")
+Rel(engineer, farm_agents, "Настраивает устройства и камеры")
+Rel(analyst, central_platform, "Получает метрики и выгрузки")
+
+Rel(ip_cameras, farm_agents, "Передают видеопотоки", "RTSP/ONVIF")
+Rel(feeders, farm_agents, "Получают команды и отдают телеметрию")
+Rel(water_filters, farm_agents, "Передают состояние фильтрации")
+Rel(feed_stock_sensors, farm_agents, "Передают остатки корма")
+Rel(farm_agents, notification_channels, "Отправляют локальные уведомления без интернета")
+Rel(farm_agents, central_platform, "Синхронизируют события, метрики и агрегаты", "до 10 минут при наличии связи")
+Rel(central_platform, notification_channels, "Оркестрирует внешние уведомления")
+Rel(central_platform, erp, "Синхронизирует справочники и события")
+Rel(central_platform, bi, "Передает витрины и метрики")
+Rel(central_platform, current_landscape, "Интегрируется с текущими системами")
+
+LAYOUT_WITH_LEGEND()
+@enduml

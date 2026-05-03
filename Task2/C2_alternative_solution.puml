@@ -1,0 +1,77 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title C2 - Central-first контейнерная архитектура
+
+System_Ext(ip_cameras, "IP-камеры", "Видео")
+System_Ext(feeders, "Кормушки и поилки", "Устройства")
+System_Ext(water_filters, "Фильтрация воды", "Устройства")
+System_Ext(feed_stock_sensors, "Датчики запасов корма", "Датчики")
+System_Ext(erp, "ERP / 1С:Агро", "Учет")
+System_Ext(bi, "BI", "Отчеты")
+System_Ext(notification_channels, "Каналы уведомлений", "SMS, мессенджеры, сирены")
+
+System_Boundary(farm_side, "Ферма") {
+  Container(light_gateway, "Lightweight Farm Gateway", "Gateway", "Сбор видео и телеметрии")
+  Container(local_buffer, "Local Buffer", "Embedded DB/Queue", "Буферизация при потере связи")
+  Container(min_alert, "Minimal Local Alert Module", "Service", "Минимальные локальные тревоги")
+}
+
+System_Boundary(central_platform, "Центральная платформа") {
+  Container(central_api_gateway, "Central API Gateway", "REST/gRPC", "Единая точка API")
+  Container(web_portal, "Web Portal", "Web", "Рабочее место")
+  Container(mobile_api, "Mobile API", "REST", "API для мобильного приложения")
+  Container(identity_access, "Identity & Access Service", "Keycloak/OAuth2/OIDC", "Роли и доступ")
+  Container(video_ingestion, "Video Ingestion Service", "Service", "Прием видеопотоков")
+  Container(central_video_analytics, "Central Video Analytics Service", "ML runtime", "Видеоаналитика в центре")
+  Container(incident_service, "Incident Service", "Service", "Инциденты")
+  Container(animal_monitoring, "Animal Monitoring Service", "Service", "Состояние животных")
+  Container(feeding_watering, "Feeding & Watering Service", "Service", "Кормление и поение")
+  Container(water_monitoring, "Water Monitoring Service", "Service", "Качество воды")
+  Container(feed_inventory, "Feed Inventory Service", "Service", "Запасы корма")
+  Container(device_adapter, "Device Adapter Service", "Service", "Удаленное управление устройствами")
+  Container(metrics_service, "Metrics Service", "Service", "Метрики")
+  Container(analytics_service, "Analytics Service", "Service", "Аналитика")
+  Container(notification_service, "Notification Service", "Service", "Уведомления")
+  Container(integration_service, "Integration Service", "Service", "Интеграции")
+  Container(central_event_bus, "Central Event Bus", "Kafka", "Событийная шина")
+  ContainerDb(central_db, "Central Operational DB", "PostgreSQL", "Операционные данные")
+  ContainerDb(data_lake, "Data Lake", "MinIO/S3", "Сырые данные и видео")
+  ContainerDb(dwh, "Data Warehouse", "ClickHouse", "Витрины")
+}
+
+Rel(ip_cameras, light_gateway, "Передают видео")
+Rel(feeders, light_gateway, "Телеметрия и команды")
+Rel(water_filters, light_gateway, "Телеметрия")
+Rel(feed_stock_sensors, light_gateway, "Телеметрия")
+Rel(light_gateway, local_buffer, "Буферизует при потере связи")
+Rel(light_gateway, min_alert, "Передает критические локальные сигналы")
+Rel(min_alert, notification_channels, "Отправляет минимальные локальные тревоги")
+Rel(local_buffer, video_ingestion, "Догружает данные после восстановления связи")
+Rel(light_gateway, video_ingestion, "Передает видеопотоки и телеметрию")
+Rel(video_ingestion, central_video_analytics, "Передает кадры")
+Rel(video_ingestion, data_lake, "Сохраняет видео")
+Rel(central_video_analytics, central_event_bus, "Публикует события анализа")
+Rel(central_event_bus, incident_service, "Передает инциденты")
+Rel(central_event_bus, animal_monitoring, "Передает события животных")
+Rel(central_event_bus, metrics_service, "Передает метрики")
+Rel(incident_service, notification_service, "Инициирует уведомления")
+Rel(notification_service, notification_channels, "Отправляет уведомления")
+Rel(device_adapter, light_gateway, "Отправляет команды на ферму")
+Rel(feeding_watering, device_adapter, "Управляет устройствами")
+Rel(water_monitoring, device_adapter, "Запрашивает состояние")
+Rel(feed_inventory, central_event_bus, "Публикует прогноз")
+Rel(web_portal, central_api_gateway, "Использует")
+Rel(mobile_api, central_api_gateway, "Использует")
+Rel(central_api_gateway, identity_access, "Проверяет доступ")
+Rel(central_api_gateway, incident_service, "Запрашивает инциденты")
+Rel(central_api_gateway, metrics_service, "Запрашивает метрики")
+Rel(incident_service, central_db, "Хранит данные")
+Rel(metrics_service, central_db, "Хранит данные")
+Rel(central_event_bus, dwh, "Передает агрегаты")
+Rel(analytics_service, dwh, "Читает витрины")
+Rel(integration_service, erp, "Интегрируется")
+Rel(integration_service, bi, "Публикует данные")
+
+LAYOUT_WITH_LEGEND()
+@enduml
