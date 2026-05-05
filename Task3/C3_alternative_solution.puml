@@ -1,0 +1,52 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title C3 - Central Video Analytics Service в Central-first решении
+
+Container_Ext(light_gateway, "Lightweight Farm Gateway", "Gateway", "Передает видео и телеметрию")
+Container_Ext(central_event_bus, "Central Event Bus", "Kafka", "Центральная шина событий")
+ContainerDb_Ext(data_lake, "Data Lake", "MinIO/S3", "Архив видео и сырые данные")
+Container_Ext(incident_service, "Incident Service", "Service", "Центральная обработка инцидентов")
+Container_Ext(notification_service, "Notification Service", "Service", "Уведомления")
+
+Container_Boundary(central_video_analytics, "Central Video Analytics Service") {
+  Component(stream_ingestion, "Stream Ingestion Component", "Component", "Принимает видеопотоки")
+  Component(stream_router, "Stream Router", "Component", "Маршрутизирует потоки по фермам")
+  Component(frame_sampler, "Frame Sampler", "Component", "Выбирает кадры для обработки")
+  Component(frame_preprocessor, "Frame Preprocessor", "Component", "Подготавливает кадры")
+  Component(inference_pool, "Inference Worker Pool", "Component", "Параллельный ML-инференс")
+  Component(animal_tracker, "Animal Tracker", "Component", "Отслеживает животных")
+  Component(behavior_analyzer, "Behavior Analyzer", "Component", "Анализирует поведение")
+  Component(animal_counting, "Animal Counting Component", "Component", "Считает поголовье")
+  Component(incident_classifier, "Incident Classifier", "Component", "Классифицирует инциденты")
+  Component(event_publisher, "Event Publisher", "Component", "Публикует события")
+  Component(video_archive_writer, "Video Archive Writer", "Component", "Пишет видео в Data Lake")
+  Component(metrics_collector, "Metrics Collector", "Component", "Собирает метрики")
+}
+
+Rel(light_gateway, stream_ingestion, "Передает видео через сеть")
+Rel(stream_ingestion, stream_router, "Передает поток")
+Rel(stream_router, frame_sampler, "Маршрутизирует кадры")
+Rel(stream_router, video_archive_writer, "Передает видеофрагменты")
+Rel(frame_sampler, frame_preprocessor, "Передает кадры")
+Rel(frame_preprocessor, inference_pool, "Передает подготовленные кадры")
+Rel(inference_pool, animal_tracker, "Передает detections")
+Rel(animal_tracker, behavior_analyzer, "Передает треки")
+Rel(animal_tracker, animal_counting, "Передает треки")
+Rel(behavior_analyzer, incident_classifier, "Передает признаки")
+Rel(incident_classifier, event_publisher, "Создает incident events")
+Rel(animal_counting, event_publisher, "Создает count events")
+Rel(event_publisher, central_event_bus, "Публикует события")
+Rel(video_archive_writer, data_lake, "Сохраняет видео")
+Rel(metrics_collector, central_event_bus, "Публикует метрики")
+Rel(central_event_bus, incident_service, "Доставляет инциденты")
+Rel(incident_service, notification_service, "Инициирует уведомления")
+
+note right of stream_ingestion
+Риск Central-first:
+при нестабильной связи видео может не дойти
+до центральной платформы вовремя.
+end note
+
+LAYOUT_WITH_LEGEND()
+@enduml

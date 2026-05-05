@@ -1,0 +1,83 @@
+# MSA-AGROTECH
+
+Архитектурный проект MVP платформы мониторинга свиноводческих ферм компании «АгроТех Х».
+
+## Цель проекта
+
+Спроектировать микросервисную платформу по модели «центральный сервер + агенты на фермах», которая:
+
+- выявляет нештатные ситуации по видео и телеметрии;
+- отправляет уведомления оператору не позднее 5 секунд после фиксации инцидента;
+- поддерживает real-time видеоаналитику рядом с источником данных;
+- работает при нестабильной связи и умеет синхронизироваться после восстановления канала;
+- предоставляет API, роли, метрики и интеграции с ERP, BI, Data Lake и DWH.
+
+## Варианты решения
+
+### Edge-first, рекомендуемый вариант
+
+На каждой ферме разворачивается farm-agent / edge-сервер. Он принимает видеопотоки, выполняет видеоаналитику, управляет локальными устройствами, хранит события в локальной БД, отправляет локальные уведомления и синхронизируется с центральной платформой после восстановления связи.
+
+Этот вариант лучше закрывает требования offline-работы, реакции до 5 секунд и real-time видеоаналитики.
+
+### Central-first, альтернативный вариант
+
+На ферме устанавливается лёгкий шлюз, а основная обработка выполняется в центральной платформе. Такой подход проще сопровождать, но он сильнее зависит от связи и хуже подходит для срочных локальных инцидентов.
+
+## Структура репозитория
+
+| Путь | Описание |
+| --- | --- |
+| `docs/` | Справочный контекст текущего IT-ландшафта АгроТех Х |
+| `Task1/` | C1 Context diagrams и ADR по выбору контекстной архитектуры |
+| `Task2/` | C2 Container diagrams и ADR по микросервисам, bounded contexts и технологиям |
+| `Task3/` | C3 Component и C4 Code diagrams для сервиса видеоаналитики |
+| `Task4/` | Итоговый ADR со сравнением Edge-first и Central-first |
+| `out/` | PNG-изображения диаграмм, экспортированные через PlantUML в VS Code |
+
+## Содержание задач
+
+- **Task1**: контекстные диаграммы C1 для Edge-first и Central-first, описание действующих лиц, внешних систем и границ решения.
+- **Task2**: контейнерные диаграммы C2, ограниченные контексты, выбор брокеров, БД, DWH, Data Lake и IAM.
+- **Task3**: детализация Video Analytics Service на уровне компонентов и классов.
+- **Task4**: сравнение архитектурных вариантов и фиксация целевого решения.
+
+## Как открыть PlantUML диаграммы в VS Code
+
+1. Откройте нужный файл `.puml`.
+2. Запустите команду `PlantUML: Preview Current Diagram`.
+3. Для C4-диаграмм нужен доступ к `raw.githubusercontent.com`, так как используется `!include` из C4-PlantUML.
+4. При необходимости можно экспортировать диаграмму через `PlantUML: Export Current Diagram`.
+
+## PNG-версии диаграмм
+
+PNG-файлы диаграмм уже экспортированы через встроенный PlantUML в VS Code и находятся в директории `out/`.
+
+| Исходная диаграмма | PNG |
+| --- | --- |
+| `docs/source_agrotech_context.puml` | `out/docs/source_agrotech_context/source_agrotech_context.png` |
+| `Task1/C1_main_solution.puml` | `out/Task1/C1_main_solution/C1_main_solution.png` |
+| `Task1/C1_alternative_solution.puml` | `out/Task1/C1_alternative_solution/C1_alternative_solution.png` |
+| `Task2/C2_main_solution.puml` | `out/Task2/C2_main_solution/C2_main_solution.png` |
+| `Task2/C2_alternative_solution.puml` | `out/Task2/C2_alternative_solution/C2_alternative_solution.png` |
+| `Task3/C3_main_solution.puml` | `out/Task3/C3_main_solution/C3_main_solution.png` |
+| `Task3/C4_main_solution.puml` | `out/Task3/C4_main_solution/C4_main_solution.png` |
+| `Task3/C3_alternative_solution.puml` | `out/Task3/C3_alternative_solution/C3_alternative_solution.png` |
+| `Task3/C4_alternative_solution.puml` | `out/Task3/C4_alternative_solution/C4_alternative_solution.png` |
+
+## Файлы проекта
+
+- `README.md`
+- `docs/source_agrotech_context.puml`
+- `Task1/ADR_Task1.md`
+- `Task1/C1_main_solution.puml`
+- `Task1/C1_alternative_solution.puml`
+- `Task2/ADR_Task2.md`
+- `Task2/C2_main_solution.puml`
+- `Task2/C2_alternative_solution.puml`
+- `Task3/C3_main_solution.puml`
+- `Task3/C4_main_solution.puml`
+- `Task3/C3_alternative_solution.puml`
+- `Task3/C4_alternative_solution.puml`
+- `Task4/ADR_Task4.md`
+- `out/`

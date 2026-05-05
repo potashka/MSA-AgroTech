@@ -1,0 +1,54 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Справочная диаграмма текущего IT-ландшафта АгроТех Х
+
+Person(user, "Пользователь", "Сотрудники АгроТех Х")
+
+System_Boundary(agrotech_landscape, "Текущий IT-ландшафт АгроТех Х") {
+  System(erp, "ERP / 1С:Агро", "Учет, финансы, производственные операции")
+  System(web_portal, "Веб-портал", "Рабочее место пользователей")
+  System(mobile_app, "Мобильное приложение", "Мобильный доступ к операциям")
+  System(scada, "SCADA", "Контроль технологических процессов")
+  System(greenhouse_sensors, "Тепличные датчики", "Климат и технологические параметры")
+  System(auto_irrigation, "Автополив", "Управление поливом")
+  System(iot_gateway, "IoT-шлюз", "Сбор телеметрии")
+  System(timeseries_db, "База временных рядов", "Хранение телеметрии")
+  System(vehicle_tracker, "Трекер техники", "Позиции и маршруты техники")
+  System(weather_stations, "Метеостанции", "Погодные данные")
+  System(soil_sensors, "Датчики почвы", "Влажность и состав почвы")
+  System(crop_monitoring, "Мониторинг урожая", "Состояние посевов и урожайности")
+  System(task_scheduler, "Планировщик заданий", "Планирование работ")
+  System(diagnostics, "Диагностика", "Контроль состояния оборудования")
+  System(fuel_monitoring, "Мониторинг ГСМ", "Расход топлива")
+  System(message_broker, "Брокер сообщений", "Интеграция событий")
+  System(data_lake, "Data Lake", "Сырые данные")
+  System(dwh, "DWH", "Витрины и исторические данные")
+  System(analytics_module, "Аналитический модуль", "Расчеты и прогнозы")
+  System(bi, "BI", "Отчеты и дашборды")
+}
+
+Rel(user, web_portal, "Работает через")
+Rel(user, mobile_app, "Использует")
+Rel(web_portal, erp, "Получает и изменяет данные")
+Rel(mobile_app, erp, "Получает данные")
+Rel(scada, iot_gateway, "Передает технологические события")
+Rel(greenhouse_sensors, iot_gateway, "Передают телеметрию")
+Rel(auto_irrigation, scada, "Получает команды")
+Rel(vehicle_tracker, message_broker, "Публикует события")
+Rel(weather_stations, message_broker, "Публикуют данные")
+Rel(soil_sensors, message_broker, "Публикуют данные")
+Rel(crop_monitoring, message_broker, "Публикует наблюдения")
+Rel(task_scheduler, erp, "Синхронизирует задания")
+Rel(diagnostics, message_broker, "Публикует события диагностики")
+Rel(fuel_monitoring, message_broker, "Публикует расход ГСМ")
+Rel(iot_gateway, timeseries_db, "Записывает телеметрию")
+Rel(message_broker, data_lake, "Поставляет поток данных")
+Rel(message_broker, dwh, "Поставляет агрегаты")
+Rel(timeseries_db, analytics_module, "Отдает временные ряды")
+Rel(data_lake, analytics_module, "Отдает сырые данные")
+Rel(dwh, bi, "Отдает витрины")
+Rel(analytics_module, bi, "Публикует аналитические показатели")
+
+LAYOUT_WITH_LEGEND()
+@enduml

@@ -1,0 +1,97 @@
+@startuml
+title C4 Code - Central Video Analytics Service в Central-first решении
+
+interface InferenceWorker {
+  +process(frame: PreparedFrame): InferenceResult
+}
+
+class FarmStreamSession {
+  +farmId: String
+  +streamId: String
+  +status: String
+}
+
+class StreamIngestionController {
+  +openSession(farmId: String): FarmStreamSession
+  +receiveFrame(session: FarmStreamSession): Frame
+}
+
+class StreamRouter {
+  +route(session: FarmStreamSession, frame: Frame)
+}
+
+class ProcessingQueue {
+  +enqueue(frame: Frame)
+  +poll(): Frame
+}
+
+class FrameSampler {
+  +sample(frame: Frame): Frame
+}
+
+class FramePreprocessor {
+  +prepare(frame: Frame): PreparedFrame
+}
+
+class MLInferenceWorker {
+  +process(frame: PreparedFrame): InferenceResult
+}
+
+class WorkerPool {
+  +submit(frame: PreparedFrame): InferenceResult
+}
+
+class AnimalTracker {
+  +track(result: InferenceResult): Track[]
+}
+
+class BehaviorAnalyzer {
+  +analyze(tracks: Track[]): BehaviorSignal[]
+}
+
+class AnimalCounter {
+  +count(tracks: Track[]): CountResult
+}
+
+class IncidentClassifier {
+  +classify(signals: BehaviorSignal[]): IncidentEvent[]
+}
+
+class KafkaEventPublisher {
+  +publish(event: IncidentEvent)
+}
+
+class VideoArchiveWriter {
+  +write(session: FarmStreamSession, frame: Frame)
+}
+
+class ProcessingMetrics {
+  +recordQueueDepth(value: Int)
+  +recordLatency(valueMs: Long)
+}
+
+InferenceWorker <|.. MLInferenceWorker
+StreamIngestionController --> FarmStreamSession
+StreamIngestionController --> StreamRouter
+StreamRouter --> ProcessingQueue
+StreamRouter --> VideoArchiveWriter
+ProcessingQueue --> FrameSampler
+FrameSampler --> FramePreprocessor
+FramePreprocessor --> WorkerPool
+WorkerPool --> InferenceWorker
+MLInferenceWorker --> AnimalTracker
+AnimalTracker --> BehaviorAnalyzer
+AnimalTracker --> AnimalCounter
+BehaviorAnalyzer --> IncidentClassifier
+AnimalCounter --> KafkaEventPublisher
+IncidentClassifier --> KafkaEventPublisher
+WorkerPool --> ProcessingMetrics
+KafkaEventPublisher --> ProcessingMetrics
+
+note right of WorkerPool
+Центральная обработка проще в сопровождении,
+но требует стабильной связи и больших ресурсов
+в центральном контуре.
+end note
+
+@enduml

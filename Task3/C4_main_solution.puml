@@ -1,0 +1,99 @@
+@startuml
+title C4 Code - Video Analytics Service в Edge-first решении
+
+interface InferenceEngine {
+  +infer(frame: PreparedFrame): InferenceResult
+}
+
+class VideoStreamConsumer {
+  +consume(streamId: String): Frame
+}
+
+class FrameBuffer {
+  +append(frame: Frame)
+  +next(): Frame
+}
+
+class FramePreprocessor {
+  +prepare(frame: Frame): PreparedFrame
+}
+
+class PartnerModelInferenceEngine {
+  +infer(frame: PreparedFrame): InferenceResult
+}
+
+class AnimalDetector {
+  +detect(result: InferenceResult): Detection[]
+}
+
+class AnimalTracker {
+  +track(detections: Detection[]): Track[]
+}
+
+class BehaviorClassifier {
+  +classify(tracks: Track[]): BehaviorSignal[]
+}
+
+class HealthStateClassifier {
+  +classify(tracks: Track[]): HealthSignal[]
+}
+
+class AnimalCounter {
+  +count(tracks: Track[]): CountResult
+}
+
+class IncidentClassifier {
+  +classify(signals: Signal[]): IncidentEvent[]
+}
+
+class IncidentEvent {
+  +eventId: String
+  +farmId: String
+  +type: String
+  +severity: String
+  +occurredAt: DateTime
+}
+
+class LocalEventPublisher {
+  +publish(event: IncidentEvent)
+}
+
+class IncidentRepository {
+  +save(event: IncidentEvent)
+}
+
+class MetricsCollector {
+  +recordLatency(valueMs: Long)
+  +recordInferenceResult(result: InferenceResult)
+}
+
+class ModelVersionManager {
+  +getActiveModel(): ModelDescriptor
+}
+
+InferenceEngine <|.. PartnerModelInferenceEngine
+VideoStreamConsumer --> FrameBuffer
+FrameBuffer --> FramePreprocessor
+FramePreprocessor --> InferenceEngine
+ModelVersionManager --> PartnerModelInferenceEngine
+PartnerModelInferenceEngine --> AnimalDetector
+AnimalDetector --> AnimalTracker
+AnimalTracker --> BehaviorClassifier
+AnimalTracker --> HealthStateClassifier
+AnimalTracker --> AnimalCounter
+BehaviorClassifier --> IncidentClassifier
+HealthStateClassifier --> IncidentClassifier
+AnimalCounter --> LocalEventPublisher
+IncidentClassifier --> IncidentEvent
+IncidentClassifier --> LocalEventPublisher
+LocalEventPublisher --> IncidentRepository
+LocalEventPublisher --> MetricsCollector
+PartnerModelInferenceEngine --> MetricsCollector
+
+note right of PartnerModelInferenceEngine
+ML-модель предоставляется партнерами.
+Она должна обновляться через ModelVersionManager
+без изменения бизнес-логики сервиса.
+end note
+
+@enduml

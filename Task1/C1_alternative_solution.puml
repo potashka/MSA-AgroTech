@@ -1,0 +1,43 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title C1 - Central-first платформа мониторинга свиноводческих ферм
+
+Person(farm_operator, "Оператор фермы", "Получает тревоги и контролирует ферму")
+Person(veterinarian, "Ветеринар", "Анализирует здоровье животных")
+Person(zootechnician, "Зоотехник", "Контролирует кормление, поведение и поголовье")
+Person(director, "Директор хозяйства", "Смотрит отчеты")
+Person(engineer, "Инженер/техник", "Обслуживает шлюз и устройства")
+Person(analyst, "Аналитик", "Использует метрики")
+
+System_Ext(ip_cameras, "IP-камеры", "Видео от разных производителей")
+System_Ext(feeders, "Кормушки и поилки", "Локальные устройства")
+System_Ext(water_filters, "Системы фильтрации воды", "Контроль качества воды")
+System_Ext(feed_stock_sensors, "Датчики запасов корма", "Остатки и расход")
+System_Ext(erp, "ERP / 1С:Агро", "Учет и производственные данные")
+System_Ext(bi, "BI-система", "Отчеты")
+System_Ext(notification_channels, "Каналы уведомлений", "SMS, мессенджеры, локальные средства")
+
+System(light_gateway, "Легкий шлюз фермы", "Сбор данных, буферизация и минимальные локальные тревоги")
+System(central_platform, "Центральная платформа", "Видеоаналитика, бизнес-логика, API, роли и интеграции")
+
+Rel(farm_operator, light_gateway, "Получает минимальные локальные тревоги")
+Rel(farm_operator, central_platform, "Работает через портал/API")
+Rel(veterinarian, central_platform, "Анализирует инциденты")
+Rel(zootechnician, central_platform, "Контролирует процессы")
+Rel(director, central_platform, "Получает отчеты")
+Rel(engineer, light_gateway, "Настраивает подключение устройств")
+Rel(analyst, central_platform, "Получает метрики")
+
+Rel(ip_cameras, light_gateway, "Передают видеопотоки")
+Rel(feeders, light_gateway, "Передают телеметрию и команды")
+Rel(water_filters, light_gateway, "Передают состояние")
+Rel(feed_stock_sensors, light_gateway, "Передают данные")
+Rel(light_gateway, central_platform, "Передает видео и телеметрию в центр")
+Rel(light_gateway, notification_channels, "Отправляет только минимальные локальные уведомления")
+Rel(central_platform, notification_channels, "Отправляет основные уведомления")
+Rel(central_platform, erp, "Интегрируется")
+Rel(central_platform, bi, "Публикует метрики")
+
+LAYOUT_WITH_LEGEND()
+@enduml
